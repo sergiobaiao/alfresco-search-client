@@ -9,3 +9,7 @@ and the site you want to provide the integration.
 Is recomended that you create a Consumer (read-only) user for this integration.
 
 After configured, simple add the [alfresco_search] shortcode in a new Wordpress page and Voilá
+
+
+Help wanted. If you want/know you way on both Wordpress and Alfresco and want to contribute, 
+please contact me.
