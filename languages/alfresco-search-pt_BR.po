@@ -1,0 +1,211 @@
+msgid ""
+msgstr ""
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Project-Id-Version: Alfresco Search Plugin\n"
+"POT-Creation-Date: 2025-03-21 10:08-0300\n"
+"PO-Revision-Date: 2025-03-21 11:30-0300\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.2\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: alfresco.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"Last-Translator: \n"
+"Language: pt_BR\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.js\n"
+
+#: alfresco.php:63 alfresco.php:561 alfresco.php:579
+msgid "Download"
+msgstr "Download"
+
+#: alfresco.php:64 alfresco.php:562 alfresco.php:582
+msgid "View"
+msgstr "Ver"
+
+#: alfresco.php:94 alfresco.php:95 alfresco.php:108
+msgid "Alfresco Settings"
+msgstr "Alfresco Plugin"
+
+#: alfresco.php:114
+msgid "Alfresco URL"
+msgstr "URL do Alfresco"
+
+#: alfresco.php:118
+msgid "Alfresco Username"
+msgstr "Usuário"
+
+#: alfresco.php:122
+msgid "Alfresco Password"
+msgstr "Senha"
+
+#: alfresco.php:126
+msgid "Maximum Results"
+msgstr "Limite de Resultados"
+
+#: alfresco.php:130
+msgid "Enable Debugging"
+msgstr "Debug"
+
+#: alfresco.php:134
+msgid "Output debug information to the browser console."
+msgstr ""
+"Mostrar informações de depuração no console de desenvolvedor do navegador."
+
+#: alfresco.php:139
+msgid "Download Link Text"
+msgstr "Texto do Link de Download"
+
+#: alfresco.php:143
+msgid "View Link Text"
+msgstr "Texto do Link de Visualização"
+
+#: alfresco.php:147
+msgid "Show Only Icons"
+msgstr "Mostrar Apenas Icones"
+
+#: alfresco.php:151
+msgid "Replace link texts with icons."
+msgstr ""
+"Subsitui os textos dos links de download e visualização por ícones SVG."
+
+#: alfresco.php:156
+msgid "Download Icon SVG"
+msgstr "Ícone SVG de Download"
+
+#: alfresco.php:160
+msgid "View Icon SVG"
+msgstr "Ícone SVG de Visualização"
+
+#: alfresco.php:164
+msgid "Default Site"
+msgstr "Site Padrão do Alfresco"
+
+#: alfresco.php:182
+msgid "Unknown Site"
+msgstr "Site Desconhecido"
+
+#: alfresco.php:187
+msgid "No Alfresco sites found."
+msgstr "Nenhum site encontrado no Alfresco."
+
+#: alfresco.php:190
+msgid "-- None --"
+msgstr "-- Nenhum --"
+
+#: alfresco.php:196
+msgid "Refresh Site List"
+msgstr "Atualizar lista de Sites do Alfresco"
+
+#: alfresco.php:199
+msgid "List Alfresco Sites"
+msgstr "Listar Sites do Alfresco"
+
+#: alfresco.php:388
+msgid "No node_id provided"
+msgstr "Nenhum node_id fornecido"
+
+#: alfresco.php:514 alfresco.php:727
+msgid "Invalid response from Alfresco"
+msgstr "Resposta inválida do Alfresco"
+
+#: alfresco.php:532
+#, php-format
+msgid "Search Results (%d total)"
+msgstr "Resultados da Busca (Total de %d)"
+
+#: alfresco.php:554
+msgid "File Name"
+msgstr "Arquivo"
+
+#: alfresco.php:555
+msgid "Title &amp; Description"
+msgstr "Título e Descrição"
+
+#: alfresco.php:556
+msgid "Actions"
+msgstr "Ações"
+
+#: alfresco.php:573
+msgid "Loading title..."
+msgstr "Carregando título..."
+
+#: alfresco.php:574
+msgid "Loading description..."
+msgstr "Carregando descrição..."
+
+#: alfresco.php:617
+msgid "No results found."
+msgstr "Nenhum resultado encontrado..."
+
+#: alfresco.php:737
+msgid "Search Options"
+msgstr "Opções de Busca"
+
+#: alfresco.php:743
+msgid "Site"
+msgstr "Site"
+
+#: alfresco.php:748
+msgid "Folder"
+msgstr "Pasta"
+
+#: alfresco.php:750
+msgid "All Folders"
+msgstr "Todas as Pastas"
+
+#: alfresco.php:756
+msgid "File Type"
+msgstr "Tipo de Arquivo"
+
+#: alfresco.php:758
+msgid "Both (PDF & DOC/DOCX)"
+msgstr "PDF & Word"
+
+#: alfresco.php:759
+msgid "PDF"
+msgstr "PDF"
+
+#: alfresco.php:760
+msgid "DOC/DOCX"
+msgstr "Word"
+
+#: alfresco.php:763
+msgid "Name"
+msgstr "Nome"
+
+#: alfresco.php:765
+msgid "Title"
+msgstr "Título"
+
+#: alfresco.php:767
+msgid "Description"
+msgstr "Descrição"
+
+#: alfresco.php:769
+msgid "Results per page"
+msgstr "Resultados por página"
+
+#: alfresco.php:777
+msgid "Search"
+msgstr "Pesquisar"
+
+#. Plugin Name of the plugin/theme
+msgid "Alfresco Search Plugin"
+msgstr "Alfresco Search Plugin"
+
+#. Description of the plugin/theme
+msgid ""
+"Search Alfresco repository via the Alfresco API with a left‑sidebar search "
+"form, download/view proxy, and admin options for custom link text or "
+"icon‑only view. Only nodes of type cm:content are shown. AJAX pagination and "
+"asynchronous node details (title and description) loading are implemented."
+msgstr ""
+"Plugin nativo do Wordpress que permite pesquisar um repositório Alfresco "
+"usando a API. Possui paginação via AJAX e funções assíncronas de pesquisa."

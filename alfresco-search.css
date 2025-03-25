@@ -1,0 +1,100 @@
+/* alfresco-search.css */
+
+/* Mimic style from https://alfresco.pge.pi.gov.br/publico/search */
+
+.alfresco-search-container {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background: #f8f8f8;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.alfresco-search-form {
+    flex: 1 1 300px;
+    background: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.alfresco-search-results {
+    flex: 2 1 600px;
+    background: #ffffff;
+    padding: 20px;
+    border: 1px solid #ddd;
+    margin-left: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.results-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.results-table th,
+.results-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.results-table th {
+    background-color: #f0f0f0;
+    font-weight: 600;
+}
+
+.node-details {
+    font-family: Arial, sans-serif;
+    font-size: 0.9rem;
+}
+
+.node-title {
+    font-weight: bold;
+    color: #333;
+}
+
+.node-description {
+    color: #666;
+    margin-top: 4px;
+}
+
+.pagination a,
+.pagination span {
+    min-width: 40px;
+    min-height: 40px;
+    line-height: 40px;
+    text-align: center;
+    border: 1px solid #ddd;
+    margin: 2px;
+    border-radius: 4px;
+    display: inline-block;
+    color: #007BFF;
+    text-decoration: none;
+}
+
+.pagination a:hover {
+    background-color: #007BFF;
+    color: #fff;
+}
+
+.pagination span {
+    background-color: #007BFF;
+    color: #fff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .alfresco-search-container {
+        flex-direction: column;
+        margin: 10px;
+    }
+    .alfresco-search-results {
+        margin-left: 0;
+        margin-top: 20px;
+    }
+}
