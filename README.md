@@ -1,5 +1,5 @@
 # alfresco-search-client
-A native Wordpress that integrates with Hyland's Alfresco Content System
+A native Wordpress plugin that integrates with Hyland's Alfresco Content System
 
 Upload the plugin to your Wordpress CMS, activate it and change related settings. 
 When activated, a new "Alfresco Settings" page appears on your Wordpress Admin Menu.
