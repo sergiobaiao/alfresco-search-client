@@ -662,6 +662,8 @@ function alfresco_search_ajax_handler() {
         }
     }
 
+    $debug_enabled = !empty($options['alfresco_debug']);
+
     $filters = array(
         'alfresco_name' => $alfresco_name,
         'title'         => $title,
@@ -1003,13 +1005,25 @@ function alfresco_search_shortcode($atts){
     $output .= '<input type="hidden" name="_alfresco_search_nonce" value="' . esc_attr($form_nonce) . '">';
     $output .= '<input type="hidden" name="submitted" value="1">';
     $output .= '<p><button type="submit" class="w-full bg-blue-500 text-white py-2 rounded">' . __('Search', 'alfresco-search') . '</button></p>';
-    $output .= '</form></div>';
+    $output .= '</form>';
+
+    if($debug_enabled){
+        $output .= '<div class="alfresco-debug-box">';
+        $output .= '<h5 class="alfresco-debug-title">' . __('Debug Information', 'alfresco-search') . '</h5>';
+        $output .= '<p class="alfresco-debug-line"><strong>' . __('CMIS Query:', 'alfresco-search') . '</strong> <span class="alfresco-debug-query">' . esc_html($query_string ? $query_string : __('(empty query)', 'alfresco-search')) . '</span></p>';
+        if($query_preview_url){
+            $output .= '<p class="alfresco-debug-line"><a class="alfresco-debug-link" href="' . esc_url($query_preview_url) . '" target="_blank" rel="noopener noreferrer">' . __('Open query in Alfresco', 'alfresco-search') . '</a></p>';
+        }
+        $output .= '</div>';
+    }
+
+    $output .= '</div>';
 
     $output .= '<div class="alfresco-search-results" id="alfresco-search-results">';
     $output .= alfresco_search_get_results_markup($results, $total_items, $total_pages, $page, $error_message, array('query_url' => $query_preview_url));
     $output .= '</div></div>';
 
-    if(alfresco_search_get_options()['alfresco_debug']){
+    if($debug_enabled){
         $debug_data = array(
             'cmis_query' => $query_string,
             'first_3_results' => array_slice($results, 0, 3)

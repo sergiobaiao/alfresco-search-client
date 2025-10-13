@@ -150,6 +150,22 @@ msgstr "Search Options"
 msgid "Site"
 msgstr "Site"
 
+#: alfresco.php:1012
+msgid "Debug Information"
+msgstr "Debug Information"
+
+#: alfresco.php:1013
+msgid "CMIS Query:"
+msgstr "CMIS Query:"
+
+#: alfresco.php:1013
+msgid "(empty query)"
+msgstr "(empty query)"
+
+#: alfresco.php:1015
+msgid "Open query in Alfresco"
+msgstr "Open query in Alfresco"
+
 #: alfresco.php:748
 msgid "Folder"
 msgstr "Folder"

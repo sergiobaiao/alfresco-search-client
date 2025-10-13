@@ -21,6 +21,39 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.alfresco-debug-box {
+    margin-top: 20px;
+    background: #fffbea;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 16px;
+    font-size: 0.85rem;
+    color: #854d0e;
+    word-break: break-word;
+}
+
+.alfresco-debug-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.alfresco-debug-line + .alfresco-debug-line {
+    margin-top: 6px;
+}
+
+.alfresco-debug-query {
+    font-family: "Courier New", Courier, monospace;
+}
+
+.alfresco-debug-link {
+    color: #b45309;
+    text-decoration: underline;
+}
+
+.alfresco-debug-link:hover {
+    color: #92400e;
+}
+
 .alfresco-search-results {
     flex: 2 1 600px;
     background: #ffffff;
