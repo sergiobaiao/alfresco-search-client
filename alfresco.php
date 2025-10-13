@@ -757,6 +757,7 @@ function alfresco_search_get_results_markup($results, $total_items, $total_pages
             <?php endif; ?>
         </div>
     <?php endif; ?>
+    <?php $has_error = !empty($error_message); ?>
     <?php if($total_items > 0): ?>
         <h4 class="text-2xl font-bold mb-4"><?php printf( __('Search Results (%d total)', 'alfresco-search'), intval($total_items) ); ?></h4>
         <?php if($total_pages > 1): ?>
@@ -842,7 +843,7 @@ function alfresco_search_get_results_markup($results, $total_items, $total_pages
                 <?php endif; ?>
             </div>
         <?php endif; ?>
-    <?php else: ?>
+    <?php elseif(!$has_error): ?>
         <p><?php _e('No results found.', 'alfresco-search'); ?></p>
     <?php endif;
     return ob_get_clean();
