@@ -1,5 +1,17 @@
 jQuery(document).ready(function($) {
     // Intercept clicks on pagination links.
+    function renderError(message, requestUrl) {
+        var safeMessage = $('<div/>').text(message).html();
+        var html = '<div class="mb-4 rounded border border-red-300 bg-red-50 p-4 text-red-700" role="alert">' +
+            '<p class="font-semibold">' + safeMessage + '</p>';
+        if (alfrescoSearch.debug && requestUrl) {
+            var safeUrl = $('<div/>').text(requestUrl).html();
+            html += '<p class="mt-2 text-xs break-all text-red-800"><strong>Request URL:</strong> ' + safeUrl + '</p>';
+        }
+        html += '</div>';
+        $('#alfresco-search-results').html(html);
+    }
+
     $('#alfresco-search-results').on('click', '.pagination a', function(e) {
         e.preventDefault();
         var url = $(this).attr('href');
@@ -12,6 +24,7 @@ jQuery(document).ready(function($) {
             },
             error: function(xhr, status, error) {
                 console.error("AJAX Error:", error);
+                renderError(alfrescoSearch.genericError, url);
             }
         });
     });
@@ -27,7 +40,8 @@ jQuery(document).ready(function($) {
                     type: 'GET',
                     data: {
                         action: 'alfresco_node_details',
-                        node_id: nodeId
+                        node_id: nodeId,
+                        nonce: alfrescoSearch.nonce
                     },
                     success: function(response) {
                         if(response.success && response.data){
