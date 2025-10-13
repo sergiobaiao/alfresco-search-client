@@ -189,16 +189,35 @@ function alfresco_search_build_conditions($site, $selected_relative, $filters, $
             : alfresco_search_build_path_condition($site);
     }
 
-    if (!empty($filters['alfresco_name'])) {
-        $conditions[] = alfresco_search_build_field_condition('cm:name', $filters['alfresco_name'], 'contains');
+    $search_term = '';
+    if (!empty($filters['search_term'])) {
+        $search_term = $filters['search_term'];
+    } else {
+        if (!empty($filters['alfresco_name'])) {
+            $conditions[] = alfresco_search_build_field_condition('cm:name', $filters['alfresco_name'], 'contains');
+        }
+
+        if (!empty($filters['title'])) {
+            $conditions[] = alfresco_search_build_field_condition('cm:title', $filters['title'], 'contains');
+        }
+
+        if (!empty($filters['description'])) {
+            $conditions[] = alfresco_search_build_field_condition('cm:description', $filters['description'], 'contains');
+        }
     }
 
-    if (!empty($filters['title'])) {
-        $conditions[] = alfresco_search_build_field_condition('cm:title', $filters['title'], 'contains');
-    }
-
-    if (!empty($filters['description'])) {
-        $conditions[] = alfresco_search_build_field_condition('cm:description', $filters['description'], 'contains');
+    if ($search_term !== '') {
+        $fields = array('cm:name', 'cm:title', 'cm:description');
+        $field_conditions = array();
+        foreach ($fields as $field) {
+            $field_condition = alfresco_search_build_field_condition($field, $search_term, 'contains');
+            if ($field_condition !== '') {
+                $field_conditions[] = $field_condition;
+            }
+        }
+        if (!empty($field_conditions)) {
+            $conditions[] = '(' . implode(' OR ', $field_conditions) . ')';
+        }
     }
 
     $file_type = isset($filters['file_type']) ? $filters['file_type'] : 'both';
@@ -697,15 +716,14 @@ function alfresco_search_ajax_handler() {
     }
 
     $options = alfresco_search_get_options();
+    $max_results = intval($options['alfresco_max_results']);
     $site = isset($_GET['site']) ? sanitize_text_field(wp_unslash($_GET['site'])) : $options['alfresco_default_site'];
     $folder = isset($_GET['folder']) ? sanitize_text_field(wp_unslash($_GET['folder'])) : '';
-    $alfresco_name = isset($_GET['alfresco_name']) ? sanitize_text_field(wp_unslash($_GET['alfresco_name'])) : '';
-    $title = isset($_GET['title']) ? sanitize_text_field(wp_unslash($_GET['title'])) : '';
-    $description = isset($_GET['description']) ? sanitize_text_field(wp_unslash($_GET['description'])) : '';
+    $search_term = isset($_GET['search_term']) ? sanitize_text_field(wp_unslash($_GET['search_term'])) : '';
     $file_type = isset($_GET['file_type']) ? sanitize_text_field(wp_unslash($_GET['file_type'])) : 'both';
     $page = isset($_GET['page']) ? max(1, intval(wp_unslash($_GET['page']))) : 1;
     $page_size = isset($_GET['page_size']) ? max(1, intval(wp_unslash($_GET['page_size'])) ) : 50;
-    $page_size = min($page_size, intval($options['alfresco_max_results']));
+    $page_size = min($page_size, $max_results);
 
     $selected_relative = '';
     if ($site && $folder) {
@@ -721,9 +739,7 @@ function alfresco_search_ajax_handler() {
     $debug_enabled = !empty($options['alfresco_debug']);
 
     $filters = array(
-        'alfresco_name' => $alfresco_name,
-        'title'         => $title,
-        'description'   => $description,
+        'search_term'   => $search_term,
         'file_type'     => $file_type
     );
     $conditions = alfresco_search_build_conditions($site, $selected_relative, $filters, 'name_wildcard');
@@ -740,6 +756,7 @@ function alfresco_search_ajax_handler() {
 
     $results = array();
     $total_items = 0;
+    $limit_reached = false;
     $error_message = '';
     $alfresco_url_trimmed = rtrim($options['alfresco_url'], '/');
     $auth_header = 'Basic ' . base64_encode($options['alfresco_username'] . ':' . $options['alfresco_password']);
@@ -783,10 +800,9 @@ function alfresco_search_ajax_handler() {
                     }
                     $results[] = $entry;
                 }
-                $total_items = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
-                if ($total_items > $options['alfresco_max_results']) {
-                    $total_items = $options['alfresco_max_results'];
-                }
+                $raw_total_items = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
+                $limit_reached = ($raw_total_items > $max_results);
+                $total_items = $limit_reached ? $max_results : $raw_total_items;
             } elseif (isset($data['error']['errorKey'])) {
                 $error_message = sprintf(__('Alfresco error: %s', 'alfresco-search'), $data['error']['errorKey']);
             } else {
@@ -803,8 +819,11 @@ function alfresco_search_ajax_handler() {
         $page,
         $error_message,
         array(
-            'query_url'    => $query_preview_url,
-            'query_string' => $query_string
+            'query_url'     => $query_preview_url,
+            'query_string'  => $query_string,
+            'limit_reached' => $limit_reached,
+            'max_results'   => $max_results,
+            'show_total'    => true
         )
     );
     wp_die();
@@ -819,6 +838,9 @@ function alfresco_search_get_results_markup($results, $total_items, $total_pages
     ob_start();
     $options = alfresco_search_get_options();
     $debug_enabled = alfresco_search_is_debug_enabled($options);
+    $limit_reached = !empty($error_details['limit_reached']);
+    $max_results = isset($error_details['max_results']) ? intval($error_details['max_results']) : intval($options['alfresco_max_results']);
+    $show_total = !empty($error_details['show_total']);
     ?>
     <?php if(!empty($error_message)): ?>
         <div class="mb-4 rounded border border-red-300 bg-red-50 p-4 text-red-700" role="alert">
@@ -841,8 +863,13 @@ function alfresco_search_get_results_markup($results, $total_items, $total_pages
         </div>
     <?php endif; ?>
     <?php $has_error = !empty($error_message); ?>
+    <?php if($show_total && !$has_error): ?>
+        <h4 class="text-2xl font-bold mb-2"><?php printf( __('Search Results (Total of %d)', 'alfresco-search'), intval($total_items) ); ?></h4>
+        <?php if($limit_reached && $max_results > 0): ?>
+            <p class="mb-4 text-sm text-gray-600"><?php printf( __('Limited to %d results', 'alfresco-search'), intval($max_results) ); ?></p>
+        <?php endif; ?>
+    <?php endif; ?>
     <?php if($total_items > 0): ?>
-        <h4 class="text-2xl font-bold mb-4"><?php printf( __('Search Results (%d total)', 'alfresco-search'), intval($total_items) ); ?></h4>
         <?php if($total_pages > 1): ?>
             <div class="pagination flex space-x-2 mb-4">
                 <?php if($page > 1): ?>
@@ -926,7 +953,7 @@ function alfresco_search_get_results_markup($results, $total_items, $total_pages
                 <?php endif; ?>
             </div>
         <?php endif; ?>
-    <?php elseif(!$has_error): ?>
+    <?php elseif(!$has_error && $show_total): ?>
         <p><?php _e('No results found.', 'alfresco-search'); ?></p>
     <?php endif;
     return ob_get_clean();
@@ -938,15 +965,20 @@ function alfresco_search_get_results_markup($results, $total_items, $total_pages
 function alfresco_search_shortcode($atts){
     $options = alfresco_search_get_options();
     $debug_enabled = alfresco_search_is_debug_enabled($options);
+    $max_results = intval($options['alfresco_max_results']);
     $site = isset($_GET['site']) ? sanitize_text_field(wp_unslash($_GET['site'])) : $options['alfresco_default_site'];
     $folder = isset($_GET['folder']) ? sanitize_text_field(wp_unslash($_GET['folder'])) : '';
-    $alfresco_name = isset($_GET['alfresco_name']) ? sanitize_text_field(wp_unslash($_GET['alfresco_name'])) : '';
-    $title = isset($_GET['title']) ? sanitize_text_field(wp_unslash($_GET['title'])) : '';
-    $description = isset($_GET['description']) ? sanitize_text_field(wp_unslash($_GET['description'])) : '';
+    $search_term = isset($_GET['search_term']) ? sanitize_text_field(wp_unslash($_GET['search_term'])) : '';
+    $legacy_name = isset($_GET['alfresco_name']) ? sanitize_text_field(wp_unslash($_GET['alfresco_name'])) : '';
+    $legacy_title = isset($_GET['title']) ? sanitize_text_field(wp_unslash($_GET['title'])) : '';
+    $legacy_description = isset($_GET['description']) ? sanitize_text_field(wp_unslash($_GET['description'])) : '';
+    if ($search_term === '') {
+        $search_term = $legacy_name !== '' ? $legacy_name : ($legacy_title !== '' ? $legacy_title : $legacy_description);
+    }
     $file_type = isset($_GET['file_type']) ? sanitize_text_field(wp_unslash($_GET['file_type'])) : 'both';
     $page = isset($_GET['page']) ? max(1, intval(wp_unslash($_GET['page']))) : 1;
     $page_size = isset($_GET['page_size']) ? max(1, intval(wp_unslash($_GET['page_size']))) : 50;
-    $page_size = min($page_size, intval($options['alfresco_max_results']));
+    $page_size = min($page_size, $max_results);
     $submitted = isset($_GET['submitted']);
 
     $request_nonce = isset($_GET['_alfresco_search_nonce']) ? sanitize_text_field(wp_unslash($_GET['_alfresco_search_nonce'])) : '';
@@ -967,9 +999,10 @@ function alfresco_search_shortcode($atts){
     }
 
     $filters = array(
-        'alfresco_name' => $alfresco_name,
-        'title'         => $title,
-        'description'   => $description,
+        'search_term'   => $search_term,
+        'alfresco_name' => $legacy_name,
+        'title'         => $legacy_title,
+        'description'   => $legacy_description,
         'file_type'     => $file_type
     );
     $conditions = alfresco_search_build_conditions($site, $selected_relative, $filters, 'mimetype');
@@ -985,6 +1018,7 @@ function alfresco_search_shortcode($atts){
 
     $results = array();
     $total_items = 0;
+    $limit_reached = false;
     $error_message = '';
     $query_preview_url = '';
     if($submitted){
@@ -1032,10 +1066,9 @@ function alfresco_search_shortcode($atts){
                             }
                             $results[] = $entry;
                         }
-                        $total_items = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
-                        if($total_items > $options['alfresco_max_results']){
-                            $total_items = $options['alfresco_max_results'];
-                        }
+                        $raw_total_items = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
+                        $limit_reached = ($raw_total_items > $max_results);
+                        $total_items = $limit_reached ? $max_results : $raw_total_items;
                     } elseif (isset($data['error']['errorKey'])) {
                         $error_message = sprintf(__('Alfresco error: %s', 'alfresco-search'), $data['error']['errorKey']);
                     } else {
@@ -1074,12 +1107,8 @@ function alfresco_search_shortcode($atts){
     $output .= '<option value="pdf" ' . selected($file_type, 'pdf', false) . '>' . __('PDF', 'alfresco-search') . '</option>';
     $output .= '<option value="doc" ' . selected($file_type, 'doc', false) . '>' . __('DOC/DOCX', 'alfresco-search') . '</option>';
     $output .= '</select></p>';
-    $output .= '<p><label for="alfresco_name" class="block font-medium">' . __('Name', 'alfresco-search') . ':</label>';
-    $output .= '<input type="text" name="alfresco_name" id="alfresco_name" value="' . esc_attr($alfresco_name) . '" class="mt-1 block w-full border-gray-300 rounded"></p>';
-    $output .= '<p><label for="title" class="block font-medium">' . __('Title', 'alfresco-search') . ':</label>';
-    $output .= '<input type="text" name="title" id="title" value="' . esc_attr($title) . '" class="mt-1 block w-full border-gray-300 rounded"></p>';
-    $output .= '<p><label for="description" class="block font-medium">' . __('Description', 'alfresco-search') . ':</label>';
-    $output .= '<input type="text" name="description" id="description" value="' . esc_attr($description) . '" class="mt-1 block w-full border-gray-300 rounded"></p>';
+    $output .= '<p><label for="search_term" class="block font-medium">' . __('Search term', 'alfresco-search') . ':</label>';
+    $output .= '<input type="text" name="search_term" id="search_term" value="' . esc_attr($search_term) . '" class="mt-1 block w-full border-gray-300 rounded" placeholder="' . esc_attr__('Search by name, title or description', 'alfresco-search') . '"></p>';
     $output .= '<p><label for="page_size" class="block font-medium">' . __('Results per page', 'alfresco-search') . ':</label>';
     $output .= '<select name="page_size" id="page_size" class="mt-1 block w-full border-gray-300 rounded">';
     foreach(array(30,50,100,200,300) as $opt){
@@ -1112,8 +1141,11 @@ function alfresco_search_shortcode($atts){
         $page,
         $error_message,
         array(
-            'query_url'    => $query_preview_url,
-            'query_string' => $query_string
+            'query_url'     => $query_preview_url,
+            'query_string'  => $query_string,
+            'limit_reached' => $limit_reached,
+            'max_results'   => $max_results,
+            'show_total'    => $submitted
         )
     );
     $output .= '</div></div>';
