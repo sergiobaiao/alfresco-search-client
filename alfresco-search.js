@@ -2,6 +2,26 @@ jQuery(document).ready(function($) {
     var $resultsContainer = $('#alfresco-search-results');
     var $form = $('#alfresco-search-form');
 
+    function applyMobileCardLabels($context) {
+        $context = $context || $(document);
+        $context.find('.results-table table').each(function() {
+            var $table = $(this);
+            var headers = [];
+
+            $table.find('thead th').each(function(index) {
+                headers[index] = $.trim($(this).text());
+            });
+
+            $table.find('tbody tr').each(function() {
+                $(this).find('td').each(function(index) {
+                    if (headers[index]) {
+                        $(this).attr('data-label', headers[index]);
+                    }
+                });
+            });
+        });
+    }
+
     function setBusyState(isBusy) {
         $resultsContainer.attr('aria-busy', isBusy ? 'true' : 'false');
     }
@@ -77,6 +97,7 @@ jQuery(document).ready(function($) {
             success: function(data) {
                 setBusyState(false);
                 $resultsContainer.html(data);
+                applyMobileCardLabels($resultsContainer);
                 loadNodeDetails();
             },
             error: function(xhr, status, error) {
@@ -104,5 +125,6 @@ jQuery(document).ready(function($) {
         });
     }
 
+    applyMobileCardLabels($resultsContainer);
     loadNodeDetails();
 });
