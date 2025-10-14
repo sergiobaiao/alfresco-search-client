@@ -54,6 +54,33 @@ function alfresco_search_enqueue_assets() {
 add_action('wp_enqueue_scripts', 'alfresco_search_enqueue_assets');
 
 /* ---------------------------------------------------------------------------
+   Output Google Analytics Tag
+--------------------------------------------------------------------------- */
+function alfresco_search_output_google_tag() {
+    $options = alfresco_search_get_options();
+    $tag = isset($options['alfresco_google_tag']) ? sanitize_text_field($options['alfresco_google_tag']) : '';
+    $tag = trim($tag);
+
+    if ($tag === '') {
+        return;
+    }
+
+    $script_src = sprintf('https://www.googletagmanager.com/gtag/js?id=%s', rawurlencode($tag));
+    ?>
+    <!-- Google tag (gtag.js) -->
+    <script async src="<?php echo esc_url($script_src); ?>"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', '<?php echo esc_js($tag); ?>');
+    </script>
+    <?php
+}
+add_action('wp_head', 'alfresco_search_output_google_tag');
+
+/* ---------------------------------------------------------------------------
    Get Plugin Options
 --------------------------------------------------------------------------- */
 function alfresco_search_get_options() {
@@ -64,6 +91,7 @@ function alfresco_search_get_options() {
         'alfresco_default_site'   => get_option('alfresco_default_site', ''),
         'alfresco_max_results'    => get_option('alfresco_max_results', 10000),
         'alfresco_debug'          => get_option('alfresco_debug', 0),
+        'alfresco_google_tag'     => get_option('alfresco_google_tag', ''),
         'alfresco_download_text'  => get_option('alfresco_download_text', __('Download', 'alfresco-search')),
         'alfresco_view_text'      => get_option('alfresco_view_text', __('View', 'alfresco-search')),
         'alfresco_icons_only'     => get_option('alfresco_icons_only', 0),
@@ -272,6 +300,7 @@ function alfresco_search_register_settings(){
     register_setting('alfresco_search_options_group', 'alfresco_default_site');
     register_setting('alfresco_search_options_group', 'alfresco_max_results');
     register_setting('alfresco_search_options_group', 'alfresco_debug');
+    register_setting('alfresco_search_options_group', 'alfresco_google_tag');
     register_setting('alfresco_search_options_group', 'alfresco_download_text');
     register_setting('alfresco_search_options_group', 'alfresco_view_text');
     register_setting('alfresco_search_options_group', 'alfresco_icons_only');
@@ -327,6 +356,13 @@ function alfresco_search_options_page(){
                             <input type="checkbox" name="alfresco_debug" value="1" <?php checked($options['alfresco_debug'], 1); ?>>
                             <?php _e('Output debug information to the browser console.', 'alfresco-search'); ?>
                         </label>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php _e('Google Analytics Tag', 'alfresco-search'); ?></th>
+                    <td>
+                        <input type="text" name="alfresco_google_tag" value="<?php echo esc_attr($options['alfresco_google_tag']); ?>" class="regular-text">
+                        <p class="description"><?php _e('Paste the measurement ID (for example, G-XXXXXXXXXX) to enable Google Analytics tracking.', 'alfresco-search'); ?></p>
                     </td>
                 </tr>
                 <tr>
