@@ -4,13 +4,14 @@
 
 .alfresco-search-container {
     display: flex;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     width: 100%;
     max-width: 1200px;
     margin: 20px auto;
     background: #f8f8f8;
     padding: 20px;
     box-sizing: border-box;
+    gap: 20px;
 }
 
 .alfresco-search-form {
@@ -19,6 +20,7 @@
     padding: 20px;
     border: 1px solid #ddd;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-width: 0;
 }
 
 .alfresco-debug-box {
@@ -59,14 +61,22 @@
     background: #ffffff;
     padding: 20px;
     border: 1px solid #ddd;
-    margin-left: 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-width: 0;
+}
+
+.results-table {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 10px;
 }
 
 .results-table table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9rem;
+    min-width: 540px;
 }
 
 .results-table th,
@@ -96,6 +106,12 @@
     margin-top: 4px;
 }
 
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .pagination a,
 .pagination span {
     min-width: 40px;
@@ -103,11 +119,11 @@
     line-height: 40px;
     text-align: center;
     border: 1px solid #ddd;
-    margin: 2px;
     border-radius: 4px;
     display: inline-block;
     color: #007BFF;
     text-decoration: none;
+    padding: 0 10px;
 }
 
 .pagination a:hover {
@@ -121,13 +137,125 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .alfresco-search-container {
-        flex-direction: column;
         margin: 10px;
+        padding: 15px;
     }
+}
+
+@media (max-width: 768px) {
+    .alfresco-search-form,
     .alfresco-search-results {
-        margin-left: 0;
-        margin-top: 20px;
+        flex: 1 1 100%;
+        padding: 15px;
+    }
+
+    .results-table table {
+        min-width: 480px;
+    }
+
+    .pagination {
+        justify-content: center;
+    }
+
+    .pagination a,
+    .pagination span {
+        min-width: 34px;
+        min-height: 34px;
+        line-height: 34px;
+    }
+}
+
+@media (max-width: 640px) {
+    .alfresco-search-results {
+        padding: 0;
+        background: transparent;
+        box-shadow: none;
+        border: none;
+    }
+
+    .alfresco-search-results > .results-table {
+        margin-top: 0;
+    }
+
+    .results-table {
+        overflow: visible;
+    }
+
+    .results-table table {
+        display: block;
+        min-width: 0;
+        background: transparent;
+    }
+
+    .results-table thead {
+        display: none;
+    }
+
+    .results-table tbody {
+        display: grid;
+        gap: 16px;
+    }
+
+    .results-table tr {
+        display: flex;
+        flex-direction: column;
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+        padding: 16px;
+    }
+
+    .results-table td {
+        display: flex;
+        flex-direction: column;
+        border: 0;
+        padding: 8px 0;
+        font-size: 0.95rem;
+        color: #1f2937;
+    }
+
+    .results-table td + td {
+        border-top: 1px dashed #e5e7eb;
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .results-table td::before {
+        content: attr(data-label);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+        color: #6b7280;
+        margin-bottom: 4px;
+    }
+
+    .results-table td:first-child {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #0f172a;
+        padding-top: 0;
+    }
+
+    .results-table td:first-child::before {
+        color: #2563eb;
+        letter-spacing: 0.1em;
+    }
+
+    .pagination {
+        width: 100%;
+        justify-content: center;
+        padding: 0 16px 20px;
+    }
+
+    .pagination a,
+    .pagination span {
+        flex: 1 1 auto;
+        min-width: unset;
+        min-height: 44px;
+        line-height: 44px;
     }
 }
