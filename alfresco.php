@@ -902,7 +902,14 @@ function alfresco_search_ajax_handler() {
             'query'    => $query_string,
             'language' => 'afts'
         ),
-        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount)
+        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount),
+        'sort'   => array(
+            array(
+                'type'      => 'FIELD',
+                'field'     => 'cm:name',
+                'ascending' => true
+            )
+        )
     );
 
     $results = array();
@@ -1175,7 +1182,14 @@ function alfresco_search_shortcode($atts){
             'query'    => $query_string,
             'language' => 'afts'
         ),
-        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount)
+        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount),
+        'sort'   => array(
+            array(
+                'type'      => 'FIELD',
+                'field'     => 'cm:name',
+                'ascending' => true
+            )
+        )
     );
 
     $results = array();
