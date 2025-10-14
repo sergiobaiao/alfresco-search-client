@@ -195,6 +195,24 @@ function alfresco_search_normalize_contains_value($value) {
     return '*' . $joined . '*';
 }
 
+function alfresco_search_sort_entries_by_filename(&$entries) {
+    if (!is_array($entries) || count($entries) < 2) {
+        return;
+    }
+
+    usort($entries, function ($left, $right) {
+        $left_name = isset($left['entry']['name']) ? $left['entry']['name'] : '';
+        $right_name = isset($right['entry']['name']) ? $right['entry']['name'] : '';
+
+        $comparison = strcasecmp($left_name, $right_name);
+        if ($comparison === 0) {
+            return strcmp($left_name, $right_name);
+        }
+
+        return $comparison;
+    });
+}
+
 function alfresco_search_path_has_hidden_folder($node) {
     if (empty($node['path']['elements']) || !is_array($node['path']['elements'])) {
         return false;
@@ -902,7 +920,14 @@ function alfresco_search_ajax_handler() {
             'query'    => $query_string,
             'language' => 'afts'
         ),
-        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount)
+        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount),
+        'sort'   => array(
+            array(
+                'type'      => 'FIELD',
+                'field'     => 'cm:name',
+                'ascending' => true
+            )
+        )
     );
 
     $results = array();
@@ -964,6 +989,8 @@ function alfresco_search_ajax_handler() {
             }
         }
     }
+
+    alfresco_search_sort_entries_by_filename($results);
 
     $total_pages = ($page_size && $total_items > 0) ? ceil($total_items / $page_size) : 0;
     echo alfresco_search_get_results_markup(
@@ -1175,7 +1202,14 @@ function alfresco_search_shortcode($atts){
             'query'    => $query_string,
             'language' => 'afts'
         ),
-        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount)
+        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount),
+        'sort'   => array(
+            array(
+                'type'      => 'FIELD',
+                'field'     => 'cm:name',
+                'ascending' => true
+            )
+        )
     );
 
     $results = array();
@@ -1243,6 +1277,8 @@ function alfresco_search_shortcode($atts){
             }
         }
     }
+
+    alfresco_search_sort_entries_by_filename($results);
 
     $total_pages = ($page_size && $total_items > 0) ? ceil($total_items / $page_size) : 0;
 
