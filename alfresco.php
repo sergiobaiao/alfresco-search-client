@@ -43,12 +43,12 @@ add_action( 'plugins_loaded', 'alfresco_search_load_textdomain' );
 --------------------------------------------------------------------------- */
 function alfresco_search_enqueue_assets() {
     $options = alfresco_search_get_options();
-    wp_enqueue_style(
+/*    wp_enqueue_style(
         'tailwindcss',
         'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
         array(),
         '2.2.19'
-    );
+    );*/
     wp_enqueue_style(
         'alfresco-search-style',
         plugin_dir_url(__FILE__) . 'alfresco-search.css',
