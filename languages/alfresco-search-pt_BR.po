@@ -1,216 +1,289 @@
 msgid ""
 msgstr ""
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "Project-Id-Version: Alfresco Search Plugin\n"
-"POT-Creation-Date: 2025-03-21 10:08-0300\n"
-"PO-Revision-Date: 2025-03-21 11:30-0300\n"
+"POT-Creation-Date: 2025-10-13 21:11-0300\n"
+"PO-Revision-Date: 2025-10-13 21:13-0300\n"
+"Last-Translator: \n"
 "Language-Team: \n"
+"Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.7\n"
 "X-Poedit-Basepath: ..\n"
 "X-Poedit-Flags-xgettext: --add-comments=translators:\n"
 "X-Poedit-WPHeader: alfresco.php\n"
 "X-Poedit-SourceCharset: UTF-8\n"
-"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
-"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
-"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
-"Last-Translator: \n"
-"Language: pt_BR\n"
+"X-Poedit-KeywordsList: "
+"__;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.js\n"
 
-#: alfresco.php:63 alfresco.php:561 alfresco.php:579
+#: alfresco.php:69
+msgid "Unable to load search results. Please try again."
+msgstr "Erro ao carregar os resultados da busca. Por favor, tente novamente."
+
+#: alfresco.php:70
+msgid "Loading results..."
+msgstr "Carregando resultados..."
+
+#: alfresco.php:116 alfresco.php:958 alfresco.php:976
 msgid "Download"
 msgstr "Download"
 
-#: alfresco.php:64 alfresco.php:562 alfresco.php:582
+#: alfresco.php:117 alfresco.php:959 alfresco.php:979
 msgid "View"
 msgstr "Ver"
 
-#: alfresco.php:94 alfresco.php:95 alfresco.php:108
+#: alfresco.php:338 alfresco.php:339 alfresco.php:352
 msgid "Alfresco Settings"
 msgstr "Alfresco Plugin"
 
-#: alfresco.php:114
+#: alfresco.php:358
 msgid "Alfresco URL"
 msgstr "URL do Alfresco"
 
-#: alfresco.php:118
+#: alfresco.php:362
 msgid "Alfresco Username"
 msgstr "Usuário"
 
-#: alfresco.php:122
+#: alfresco.php:366
 msgid "Alfresco Password"
 msgstr "Senha"
 
-#: alfresco.php:126
+#: alfresco.php:370
 msgid "Maximum Results"
 msgstr "Limite de Resultados"
 
-#: alfresco.php:130
+#: alfresco.php:374
 msgid "Enable Debugging"
 msgstr "Debug"
 
-#: alfresco.php:134
+#: alfresco.php:378
 msgid "Output debug information to the browser console."
 msgstr ""
 "Mostrar informações de depuração no console de desenvolvedor do navegador."
 
-#: alfresco.php:139
+#: alfresco.php:383
+msgid "Google Analytics Tag"
+msgstr "Código (Tag) do Google Analytics"
+
+#: alfresco.php:386
+msgid ""
+"Paste the measurement ID (for example, G-XXXXXXXXXX) to enable Google "
+"Analytics tracking."
+msgstr ""
+"Cole o id de medição (por exemplo, G-XXXXXXXXXX) para habilitar o "
+"rastreamento do Google Analytics."
+
+#: alfresco.php:390
 msgid "Download Link Text"
 msgstr "Texto do Link de Download"
 
-#: alfresco.php:143
+#: alfresco.php:394
 msgid "View Link Text"
 msgstr "Texto do Link de Visualização"
 
-#: alfresco.php:147
+#: alfresco.php:398
 msgid "Show Only Icons"
 msgstr "Mostrar Apenas Icones"
 
-#: alfresco.php:151
+#: alfresco.php:402
 msgid "Replace link texts with icons."
 msgstr ""
 "Subsitui os textos dos links de download e visualização por ícones SVG."
 
-#: alfresco.php:156
+#: alfresco.php:407
 msgid "Download Icon SVG"
 msgstr "Ícone SVG de Download"
 
-#: alfresco.php:160
+#: alfresco.php:411
 msgid "View Icon SVG"
 msgstr "Ícone SVG de Visualização"
 
-#: alfresco.php:164
+#: alfresco.php:415
 msgid "Default Site"
 msgstr "Site Padrão do Alfresco"
 
-#: alfresco.php:182
+#: alfresco.php:433
 msgid "Unknown Site"
 msgstr "Site Desconhecido"
 
-#: alfresco.php:187
+#: alfresco.php:438
 msgid "No Alfresco sites found."
 msgstr "Nenhum site encontrado no Alfresco."
 
-#: alfresco.php:190
+#: alfresco.php:441
 msgid "-- None --"
 msgstr "-- Nenhum --"
 
-#: alfresco.php:196
+#: alfresco.php:447
 msgid "Refresh Site List"
 msgstr "Atualizar lista de Sites do Alfresco"
 
-#: alfresco.php:199
+#: alfresco.php:450
 msgid "List Alfresco Sites"
 msgstr "Listar Sites do Alfresco"
 
-#: alfresco.php:388
+#: alfresco.php:637
+msgid "You do not have permission to download this file."
+msgstr "Você não tem permissão para fazer o download deste arquivo."
+
+#: alfresco.php:641
+msgid "Invalid download request. Please refresh the page and try again."
+msgstr "Requisição inválida. Por favor, atualize a página e tente novamente."
+
+#: alfresco.php:672
+msgid "You do not have permission to view this file."
+msgstr "Você não tem permissão para ver este arquivo."
+
+#: alfresco.php:676
+msgid "Invalid view request. Please refresh the page and try again."
+msgstr "Requisição inválida. Por favor, atualize a página e tente novamente."
+
+#: alfresco.php:731
+msgid "You do not have permission to access node details."
+msgstr "Você não tem permissão para acessar os detalhes deste nó."
+
+#: alfresco.php:735
+msgid "Invalid request. Please refresh and try again."
+msgstr "Requisição inválida. Por favor, atualize a página e tente novamente."
+
+#: alfresco.php:738
 msgid "No node_id provided"
 msgstr "Nenhum node_id fornecido"
 
-#: alfresco.php:514 alfresco.php:727
+#: alfresco.php:765 alfresco.php:1085
+msgid "You do not have permission to perform searches."
+msgstr "Você não possui permissão para pesquisar."
+
+#: alfresco.php:771 alfresco.php:1083
+msgid "Security check failed. Please refresh and try again."
+msgstr ""
+"A checagem de segurança falhou. Por favor, atualize a página e tente "
+"novamente."
+
+#: alfresco.php:840 alfresco.php:1107
+#, php-format
+msgid "Alfresco search request failed (%1$s %2$s)."
+msgstr "A requisição de pesquisa (%1$s %2$s) do Alfresco falhou."
+
+#: alfresco.php:848 alfresco.php:866 alfresco.php:1114 alfresco.php:1132
 msgid "Invalid response from Alfresco"
 msgstr "Resposta inválida do Alfresco"
 
-#: alfresco.php:532
+#: alfresco.php:864 alfresco.php:1130
 #, php-format
-msgid "Search Results (%d total)"
-msgstr "Resultados da Busca (Total de %d)"
+msgid "Alfresco error: %s"
+msgstr "Erro do Alfresco  %s"
 
-#: alfresco.php:554
-msgid "File Name"
-msgstr "Arquivo"
+#: alfresco.php:906
+msgid "Query URL:"
+msgstr "URL de Pesquisa:"
 
-#: alfresco.php:555
-msgid "Title &amp; Description"
-msgstr "Título e Descrição"
-
-#: alfresco.php:556
-msgid "Actions"
-msgstr "Ações"
-
-#: alfresco.php:573
-msgid "Loading title..."
-msgstr "Carregando título..."
-
-#: alfresco.php:574
-msgid "Loading description..."
-msgstr "Carregando descrição..."
-
-#: alfresco.php:617
-msgid "No results found."
-msgstr "Nenhum resultado encontrado..."
-
-#: alfresco.php:737
-msgid "Search Options"
-msgstr "Opções de Busca"
-
-#: alfresco.php:743
-msgid "Site"
-msgstr "Site"
-
-#: alfresco.php:1012
+#: alfresco.php:912 alfresco.php:1184
 msgid "Debug Information"
 msgstr "Informações de depuração"
 
-#: alfresco.php:1013
+#: alfresco.php:914 alfresco.php:1185
 msgid "CMIS Query:"
 msgstr "Consulta CMIS:"
 
-#: alfresco.php:1013
+#: alfresco.php:915 alfresco.php:1185
 msgid "(empty query)"
 msgstr "(consulta vazia)"
 
-#: alfresco.php:1015
+#: alfresco.php:918 alfresco.php:1187
 msgid "Open query in Alfresco"
 msgstr "Abrir consulta no Alfresco"
 
-#: alfresco.php:748
+#: alfresco.php:924
+#, php-format
+msgid "Search Results (Total of %d)"
+msgstr "Resultados da Busca (Total de %d)"
+
+#: alfresco.php:926
+#, php-format
+msgid "Limited to %d results"
+msgstr "Limitado a %d resultados"
+
+#: alfresco.php:951
+msgid "File Name"
+msgstr "Arquivo"
+
+#: alfresco.php:952
+msgid "Title &amp; Description"
+msgstr "Título e Descrição"
+
+#: alfresco.php:953
+msgid "Actions"
+msgstr "Ações"
+
+#: alfresco.php:970
+msgid "Loading title..."
+msgstr "Carregando título..."
+
+#: alfresco.php:971
+msgid "Loading description..."
+msgstr "Carregando descrição..."
+
+#: alfresco.php:1014
+msgid "No results found."
+msgstr "Nenhum resultado encontrado..."
+
+#: alfresco.php:1144
+msgid "Search Options"
+msgstr "Opções de Busca"
+
+#: alfresco.php:1148
+msgid "Site"
+msgstr "Site"
+
+#: alfresco.php:1153
 msgid "Folder"
 msgstr "Pasta"
 
-#: alfresco.php:750
+#: alfresco.php:1155
 msgid "All Folders"
 msgstr "Todas as Pastas"
 
-#: alfresco.php:756
+#: alfresco.php:1161
 msgid "File Type"
 msgstr "Tipo de Arquivo"
 
-#: alfresco.php:758
+#: alfresco.php:1163
 msgid "Both (PDF & DOC/DOCX)"
 msgstr "PDF & Word"
 
-#: alfresco.php:759
+#: alfresco.php:1164
 msgid "PDF"
 msgstr "PDF"
 
-#: alfresco.php:760
+#: alfresco.php:1165
 msgid "DOC/DOCX"
 msgstr "Word"
 
-#: alfresco.php:763
-msgid "Name"
-msgstr "Nome"
+#: alfresco.php:1167
+msgid "Search term"
+msgstr "Termo de Busca"
 
-#: alfresco.php:765
-msgid "Title"
-msgstr "Título"
+#: alfresco.php:1168
+msgid "Search by name, title or description"
+msgstr "Pesquise por nome, título ou descrição"
 
-#: alfresco.php:767
-msgid "Description"
-msgstr "Descrição"
-
-#: alfresco.php:769
+#: alfresco.php:1169
 msgid "Results per page"
 msgstr "Resultados por página"
 
-#: alfresco.php:777
+#: alfresco.php:1178
 msgid "Search"
 msgstr "Pesquisar"
+
+#: alfresco.php:1179
+#, php-format
+msgid "Plugin version: %s"
+msgstr "Versão do plugin: %s"
 
 #. Plugin Name of the plugin/theme
 msgid "Alfresco Search Plugin"
@@ -225,3 +298,16 @@ msgid ""
 msgstr ""
 "Plugin nativo do Wordpress que permite pesquisar um repositório Alfresco "
 "usando a API. Possui paginação via AJAX e funções assíncronas de pesquisa."
+
+#. Author of the plugin/theme
+msgid "Sergio Baião <sergio@plugada.net>"
+msgstr "Sergio Baião <sergio@plugada.net>"
+
+#~ msgid "Name"
+#~ msgstr "Nome"
+
+#~ msgid "Title"
+#~ msgstr "Título"
+
+#~ msgid "Description"
+#~ msgstr "Descrição"

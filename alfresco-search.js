@@ -1,6 +1,26 @@
 jQuery(document).ready(function($) {
-    // Intercept clicks on pagination links.
+    var $resultsContainer = $('#alfresco-search-results');
+    var $form = $('#alfresco-search-form');
+
+    function setBusyState(isBusy) {
+        $resultsContainer.attr('aria-busy', isBusy ? 'true' : 'false');
+    }
+
+    function renderLoading(requestUrl) {
+        setBusyState(true);
+        var extraInfo = '';
+        if (alfrescoSearch.debug && requestUrl) {
+            extraInfo = '<p class="mt-2 text-xs break-all text-blue-700"><strong>Request URL:</strong> ' + $('<div/>').text(requestUrl).html() + '</p>';
+        }
+        var safeMessage = $('<div/>').text(alfrescoSearch.loadingMessage || 'Loading...').html();
+        var html = '<div class="mb-4 rounded border border-blue-300 bg-blue-50 p-4 text-blue-700" role="status">' +
+            '<p class="font-semibold">' + safeMessage + '</p>' + extraInfo +
+            '</div>';
+        $resultsContainer.html(html);
+    }
+
     function renderError(message, requestUrl) {
+        setBusyState(false);
         var safeMessage = $('<div/>').text(message).html();
         var html = '<div class="mb-4 rounded border border-red-300 bg-red-50 p-4 text-red-700" role="alert">' +
             '<p class="font-semibold">' + safeMessage + '</p>';
@@ -9,27 +29,9 @@ jQuery(document).ready(function($) {
             html += '<p class="mt-2 text-xs break-all text-red-800"><strong>Request URL:</strong> ' + safeUrl + '</p>';
         }
         html += '</div>';
-        $('#alfresco-search-results').html(html);
+        $resultsContainer.html(html);
     }
 
-    $('#alfresco-search-results').on('click', '.pagination a', function(e) {
-        e.preventDefault();
-        var url = $(this).attr('href');
-        $.ajax({
-            url: url,
-            type: 'GET',
-            success: function(data) {
-                $('#alfresco-search-results').html(data);
-                loadNodeDetails();
-            },
-            error: function(xhr, status, error) {
-                console.error("AJAX Error:", error);
-                renderError(alfrescoSearch.genericError, url);
-            }
-        });
-    });
-    
-    // Function to load node details (title and description) asynchronously.
     function loadNodeDetails() {
         $('.node-details[data-node-id]').each(function(){
             var $container = $(this);
@@ -56,7 +58,7 @@ jQuery(document).ready(function($) {
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error("AJAX Node Details Error:", error);
+                        console.error('AJAX Node Details Error:', error);
                         $container.find('.node-title').text($container.closest('tr').find('td:first').text());
                         $container.find('.node-description').text('Error loading details');
                     }
@@ -64,6 +66,43 @@ jQuery(document).ready(function($) {
             }
         });
     }
-    // Trigger node details loading on page load.
+
+    function requestResults(options) {
+        var requestUrl = options.url || alfrescoSearch.ajax_url;
+        renderLoading(requestUrl);
+        $.ajax({
+            url: requestUrl,
+            type: 'GET',
+            data: options.data || {},
+            success: function(data) {
+                setBusyState(false);
+                $resultsContainer.html(data);
+                loadNodeDetails();
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', error);
+                renderError(alfrescoSearch.genericError, requestUrl);
+            }
+        });
+    }
+
+    $resultsContainer.on('click', '.pagination a', function(e) {
+        e.preventDefault();
+        var url = $(this).attr('href');
+        requestResults({ url: url });
+    });
+
+    if ($form.length) {
+        $form.on('submit', function(e) {
+            e.preventDefault();
+            var formData = { action: 'alfresco_search_results', page: 1 };
+            $.each($form.serializeArray(), function(_, field) {
+                formData[field.name] = field.value;
+            });
+            formData.page = 1;
+            requestResults({ data: formData });
+        });
+    }
+
     loadNodeDetails();
 });
