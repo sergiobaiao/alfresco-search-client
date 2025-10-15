@@ -43,12 +43,12 @@ add_action( 'plugins_loaded', 'alfresco_search_load_textdomain' );
 --------------------------------------------------------------------------- */
 function alfresco_search_enqueue_assets() {
     $options = alfresco_search_get_options();
-    wp_enqueue_style(
+/*    wp_enqueue_style(
         'tailwindcss',
         'https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css',
         array(),
         '2.2.19'
-    );
+    );*/
     wp_enqueue_style(
         'alfresco-search-style',
         plugin_dir_url(__FILE__) . 'alfresco-search.css',
@@ -195,6 +195,82 @@ function alfresco_search_normalize_contains_value($value) {
     return '*' . $joined . '*';
 }
 
+function alfresco_search_sort_entries_by_filename(&$entries) {
+    if (!is_array($entries) || count($entries) < 2) {
+        return;
+    }
+
+    usort($entries, function ($left, $right) {
+        $left_name = isset($left['entry']['name']) ? $left['entry']['name'] : '';
+        $right_name = isset($right['entry']['name']) ? $right['entry']['name'] : '';
+
+        $comparison = strcasecmp($left_name, $right_name);
+        if ($comparison === 0) {
+            return strcmp($left_name, $right_name);
+        }
+
+        return $comparison;
+    });
+}
+
+function alfresco_search_path_has_hidden_folder($node) {
+    if (empty($node['path']['elements']) || !is_array($node['path']['elements'])) {
+        return false;
+    }
+
+    $elements = $node['path']['elements'];
+    $node_ref = '';
+    if (!empty($node['nodeRef'])) {
+        $node_ref = $node['nodeRef'];
+    } elseif (!empty($node['id'])) {
+        $node_ref = 'workspace://SpacesStore/' . $node['id'];
+    }
+
+    foreach ($elements as $element) {
+        if (!is_array($element)) {
+            continue;
+        }
+
+        if ($node_ref && !empty($element['id']) && $element['id'] === $node_ref) {
+            // This element represents the node itself, not one of its parent folders.
+            continue;
+        }
+
+        $node_type = isset($element['nodeType']) ? $element['nodeType'] : '';
+        if ($node_type === 'cm:content') {
+            continue;
+        }
+
+        $name = '';
+        if (!empty($element['displayName'])) {
+            $name = $element['displayName'];
+        } elseif (!empty($element['name'])) {
+            $name = $element['name'];
+        } elseif (!empty($element['prefixedName'])) {
+            $name = $element['prefixedName'];
+        }
+
+        if (!is_string($name) || $name === '') {
+            continue;
+        }
+
+        if (strpos($name, ':') !== false) {
+            $name = substr($name, strrpos($name, ':') + 1);
+        }
+
+        $name = trim($name);
+        if ($name === '') {
+            continue;
+        }
+
+        if (substr($name, 0, 1) === '_') {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 function alfresco_search_build_path_condition($site, $relative_path = '') {
     if ($site === '') {
         return '';
@@ -229,13 +305,23 @@ function alfresco_search_build_query_preview_url($search_url, $query_string) {
     return add_query_arg(array('query' => $query_string), $search_url);
 }
 
-function alfresco_search_build_conditions($site, $selected_relative, $filters, $file_type_mode = 'mimetype') {
+function alfresco_search_build_conditions($site, $selected_relative, $filters, $file_type_mode = 'mimetype', $selected_node_ref = '') {
     $conditions = array();
 
     if ($site) {
-        $conditions[] = $selected_relative
-            ? alfresco_search_build_path_condition($site, $selected_relative)
-            : alfresco_search_build_path_condition($site);
+        $path_condition = alfresco_search_build_path_condition($site);
+        if ($path_condition) {
+            $conditions[] = $path_condition;
+        }
+
+        if ($selected_node_ref) {
+            $conditions[] = 'ANCESTOR:"' . alfresco_search_escape_cmis_value($selected_node_ref) . '"';
+        } elseif ($selected_relative) {
+            $relative_condition = alfresco_search_build_path_condition($site, $selected_relative);
+            if ($relative_condition) {
+                $conditions[] = $relative_condition;
+            }
+        }
     }
 
     $search_term = '';
@@ -558,6 +644,9 @@ function alfresco_search_get_folders($site) {
         }
         $node = $entry['entry'];
         $name = isset($node['name']) ? $node['name'] : '';
+        if (alfresco_search_path_has_hidden_folder($node)) {
+            continue;
+        }
         if ($name && in_array(substr($name, 0, 1), $special_chars, true)) {
             continue;
         }
@@ -566,10 +655,20 @@ function alfresco_search_get_folders($site) {
             continue;
         }
         $parent_id = isset($node['parentId']) ? $node['parentId'] : '';
+        $node_ref = '';
+        if (!empty($node['nodeRef'])) {
+            $node_ref = $node['nodeRef'];
+        } elseif (!empty($node['properties']['cm:nodeRef'])) {
+            $node_ref = $node['properties']['cm:nodeRef'];
+        }
+        if ($node_ref === '') {
+            $node_ref = 'workspace://SpacesStore/' . $folder_id;
+        }
         $folders[$folder_id] = array(
             'id'       => $folder_id,
             'name'     => $name,
             'parentId' => $parent_id,
+            'nodeRef'  => $node_ref,
             'children' => array()
         );
     }
@@ -592,7 +691,12 @@ function alfresco_search_get_folders($site) {
         foreach ($folder_list as $folder) {
             $full_relative = $parent_relative ? $parent_relative . '/' . $folder['name'] : $folder['name'];
             $display = str_repeat('- ', $depth) . $folder['name'];
-            $options[] = array('node_id' => $folder['id'], 'value' => $full_relative, 'display' => $display);
+            $options[] = array(
+                'node_id'  => $folder['id'],
+                'node_ref' => $folder['nodeRef'],
+                'value'    => $full_relative,
+                'display'  => $display
+            );
             if (!empty($folder['children'])) {
                 $options = array_merge($options, $flatten($folder['children'], $full_relative, $depth + 1));
             }
@@ -783,11 +887,15 @@ function alfresco_search_ajax_handler() {
     $page_size = min($page_size, $max_results);
 
     $selected_relative = '';
+    $selected_node_ref = '';
     if ($site && $folder) {
         $folder_options = alfresco_search_get_folders($site);
         foreach ($folder_options as $opt) {
             if ($opt['node_id'] === $folder) {
                 $selected_relative = $opt['value'];
+                if (!empty($opt['node_ref'])) {
+                    $selected_node_ref = $opt['node_ref'];
+                }
                 break;
             }
         }
@@ -799,7 +907,11 @@ function alfresco_search_ajax_handler() {
         'search_term'   => $search_term,
         'file_type'     => $file_type
     );
-    $conditions = alfresco_search_build_conditions($site, $selected_relative, $filters, 'mimetype');
+    if ($selected_node_ref === '' && $folder) {
+        $selected_node_ref = 'workspace://SpacesStore/' . $folder;
+    }
+
+    $conditions = alfresco_search_build_conditions($site, $selected_relative, $filters, 'mimetype', $selected_node_ref);
     $query_string = implode(' AND ', $conditions);
 
     $skipCount = ($page - 1) * $page_size;
@@ -808,7 +920,14 @@ function alfresco_search_ajax_handler() {
             'query'    => $query_string,
             'language' => 'afts'
         ),
-        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount)
+        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount),
+        'sort'   => array(
+            array(
+                'type'      => 'FIELD',
+                'field'     => 'cm:name',
+                'ascending' => true
+            )
+        )
     );
 
     $results = array();
@@ -855,6 +974,9 @@ function alfresco_search_ajax_handler() {
                     if (isset($node['nodeType']) && $node['nodeType'] === 'cm:folder') {
                         continue;
                     }
+                    if (alfresco_search_path_has_hidden_folder($node)) {
+                        continue;
+                    }
                     $results[] = $entry;
                 }
                 $raw_total_items = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
@@ -867,6 +989,8 @@ function alfresco_search_ajax_handler() {
             }
         }
     }
+
+    alfresco_search_sort_entries_by_filename($results);
 
     $total_pages = ($page_size && $total_items > 0) ? ceil($total_items / $page_size) : 0;
     echo alfresco_search_get_results_markup(
@@ -1043,12 +1167,16 @@ function alfresco_search_shortcode($atts){
 
     $folder_options = array();
     $selected_relative = '';
+    $selected_node_ref = '';
     if($site){
         $folder_options = alfresco_search_get_folders($site);
         if($folder){
             foreach($folder_options as $opt){
                 if($opt['node_id'] === $folder){
                     $selected_relative = $opt['value'];
+                    if (!empty($opt['node_ref'])) {
+                        $selected_node_ref = $opt['node_ref'];
+                    }
                     break;
                 }
             }
@@ -1062,7 +1190,11 @@ function alfresco_search_shortcode($atts){
         'description'   => $legacy_description,
         'file_type'     => $file_type
     );
-    $conditions = alfresco_search_build_conditions($site, $selected_relative, $filters, 'mimetype');
+    if ($selected_node_ref === '' && $folder) {
+        $selected_node_ref = 'workspace://SpacesStore/' . $folder;
+    }
+
+    $conditions = alfresco_search_build_conditions($site, $selected_relative, $filters, 'mimetype', $selected_node_ref);
     $query_string = implode(' AND ', $conditions);
     $skipCount = ($page - 1) * $page_size;
     $payload = array(
@@ -1070,7 +1202,14 @@ function alfresco_search_shortcode($atts){
             'query'    => $query_string,
             'language' => 'afts'
         ),
-        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount)
+        'paging' => array('maxItems' => $page_size, 'skipCount' => $skipCount),
+        'sort'   => array(
+            array(
+                'type'      => 'FIELD',
+                'field'     => 'cm:name',
+                'ascending' => true
+            )
+        )
     );
 
     $results = array();
@@ -1121,6 +1260,9 @@ function alfresco_search_shortcode($atts){
                             if ( isset($node['nodeType']) && $node['nodeType'] === 'cm:folder' ) {
                                 continue;
                             }
+                            if (alfresco_search_path_has_hidden_folder($node)) {
+                                continue;
+                            }
                             $results[] = $entry;
                         }
                         $raw_total_items = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
@@ -1135,6 +1277,8 @@ function alfresco_search_shortcode($atts){
             }
         }
     }
+
+    alfresco_search_sort_entries_by_filename($results);
 
     $total_pages = ($page_size && $total_items > 0) ? ceil($total_items / $page_size) : 0;
 
