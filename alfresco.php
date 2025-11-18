@@ -214,6 +214,10 @@ function alfresco_search_sort_entries_by_filename(&$entries) {
 }
 
 function alfresco_search_path_has_hidden_folder($node) {
+    if (alfresco_search_name_starts_with_doe(isset($node['name']) ? $node['name'] : '')) {
+        return true;
+    }
+
     if (empty($node['path']['elements']) || !is_array($node['path']['elements'])) {
         return false;
     }
@@ -263,12 +267,26 @@ function alfresco_search_path_has_hidden_folder($node) {
             continue;
         }
 
+        if (alfresco_search_name_starts_with_doe($name)) {
+            return true;
+        }
+
         if (substr($name, 0, 1) === '_') {
             return true;
         }
     }
 
     return false;
+}
+
+function alfresco_search_name_starts_with_doe($name) {
+    if (!is_string($name) || $name === '') {
+        return false;
+    }
+
+    $normalized = ltrim($name);
+
+    return $normalized !== '' && stripos($normalized, 'DOE') === 0;
 }
 
 function alfresco_search_build_path_condition($site, $relative_path = '') {
