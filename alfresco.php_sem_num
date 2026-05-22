@@ -2,7 +2,7 @@
 /*
 Plugin Name: Alfresco Search Plugin
 Description: Search Alfresco repository via the Alfresco API with a left‑sidebar search form, download/view proxy, and admin options for custom link text or icon‑only view. Only nodes of type cm:content are shown. AJAX pagination and asynchronous node details (title and description) loading are implemented.
-Version: 1.5.5
+Version: 1.5.4
 Author: Sergio Baião <sergio@plugada.net>
 Text Domain: alfresco-search
 Domain Path: /languages
@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit; // Exit if accessed directly.
 }
 
-define( 'ALFRESCO_SEARCH_VERSION', '1.5.5' );
+define( 'ALFRESCO_SEARCH_VERSION', '1.5.4' );
 
 function alfresco_search_force_locale( $locale, $domain ) {
     if ( 'alfresco-search' !== $domain ) {
@@ -112,8 +112,7 @@ function alfresco_search_get_options() {
         'alfresco_default_site'   => get_option('alfresco_default_site', ''),
         'alfresco_max_results'    => get_option('alfresco_max_results', 10000),
         'alfresco_debug'          => get_option('alfresco_debug', 0),
-        'alfresco_sslverify'      => get_option('alfresco_sslverify', 0),
-        'alfresco_google_tag'     => get_option('alfresco_google_tag', ''),
+	'alfresco_google_tag'     => get_option('alfresco_google_tag', ''),
         'alfresco_download_text'  => get_option('alfresco_download_text', __('Download', 'alfresco-search')),
         'alfresco_view_text'      => get_option('alfresco_view_text', __('View', 'alfresco-search')),
         'alfresco_icons_only'     => get_option('alfresco_icons_only', 0),
@@ -140,34 +139,6 @@ function alfresco_search_verify_nonce($nonce) {
 function alfresco_search_current_user_can_access() {
     $can_access = is_user_logged_in() ? current_user_can('read') : true;
     return (bool) apply_filters('alfresco_search_user_can_access', $can_access);
-}
-
-function alfresco_search_validate_node_id($node_id) {
-    if (preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i', $node_id)) {
-        return $node_id;
-    }
-    return '';
-}
-
-function alfresco_search_friendly_http_error($wp_error) {
-    $raw = $wp_error->get_error_message();
-
-    $patterns = array(
-        '/cURL error 6/'             => __('Não foi possível resolver o endereço do servidor Alfresco. Verifique a URL nas configurações do plugin.', 'alfresco-search'),
-        '/cURL error 7/'             => __('Não foi possível conectar ao servidor Alfresco. O servidor pode estar offline ou inacessível.', 'alfresco-search'),
-        '/cURL error 28/'            => __('A conexão com o Alfresco expirou. O servidor pode estar sobrecarregado ou temporariamente indisponível.', 'alfresco-search'),
-        '/cURL error (35|52|55|56)/' => __('A conexão com o Alfresco foi interrompida. O servidor pode estar reiniciando — tente novamente em alguns instantes.', 'alfresco-search'),
-        '/SSL|TLS|tls/'              => __('Não foi possível estabelecer uma conexão segura com o Alfresco. O servidor pode estar offline ou reiniciando.', 'alfresco-search'),
-        '/timed? ?out/i'             => __('A conexão com o Alfresco expirou. Por favor, tente novamente.', 'alfresco-search'),
-    );
-
-    foreach ($patterns as $pattern => $message) {
-        if (preg_match($pattern, $raw)) {
-            return $message;
-        }
-    }
-
-    return __('Não foi possível conectar ao servidor Alfresco. Por favor, tente novamente mais tarde.', 'alfresco-search');
 }
 
 function alfresco_search_escape_cmis_value($value) {
@@ -397,9 +368,6 @@ function alfresco_search_build_conditions($site, $selected_relative, $filters, $
                 $field_conditions[] = $field_condition;
             }
         }
-        // Add Full Text Search condition
-        $field_conditions[] = "CONTAINS('" . alfresco_search_escape_cmis_value($search_term) . "')";
-
         if (!empty($field_conditions)) {
             $conditions[] = '(' . implode(' OR ', $field_conditions) . ')';
         }
@@ -429,10 +397,6 @@ function alfresco_search_build_conditions($site, $selected_relative, $filters, $
     }
 
     $conditions[] = 'TYPE:"cm:content"';
-    
-    // Exclude hidden files
-    $conditions[] = 'NOT cm:name:"DOE*"';
-    $conditions[] = 'NOT cm:name:"_*"';
 
     return array_filter(array_map('trim', $conditions));
 }
@@ -444,7 +408,7 @@ function alfresco_search_is_debug_enabled($options = null) {
 
     $debug_option = !empty($options['alfresco_debug']);
     $request_debug = isset($_GET['alfresco_debug']) ? sanitize_text_field(wp_unslash($_GET['alfresco_debug'])) : '';
-    if ($request_debug !== '' && current_user_can('manage_options')) {
+    if ($request_debug !== '') {
         $debug_option = $debug_option || in_array(strtolower($request_debug), array('1', 'true', 'yes'), true);
     }
 
@@ -461,7 +425,6 @@ function alfresco_search_register_settings(){
     register_setting('alfresco_search_options_group', 'alfresco_default_site');
     register_setting('alfresco_search_options_group', 'alfresco_max_results');
     register_setting('alfresco_search_options_group', 'alfresco_debug');
-    register_setting('alfresco_search_options_group', 'alfresco_sslverify');
     register_setting('alfresco_search_options_group', 'alfresco_google_tag');
     register_setting('alfresco_search_options_group', 'alfresco_download_text');
     register_setting('alfresco_search_options_group', 'alfresco_view_text');
@@ -520,22 +483,13 @@ function alfresco_search_options_page(){
                         </label>
                     </td>
                 </tr>
-                <tr>
-                    <th scope="row"><?php _e('Verify SSL Certificate', 'alfresco-search'); ?></th>
-                    <td>
-                        <label>
-                            <input type="checkbox" name="alfresco_sslverify" value="1" <?php checked($options['alfresco_sslverify'], 1); ?>>
-                            <?php _e('Validate SSL certificates. Disable only for self-signed certificates in development environments.', 'alfresco-search'); ?>
-                        </label>
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row"><?php _e('Google Analytics Tag', 'alfresco-search'); ?></th>
-                    <td>
-                        <input type="text" name="alfresco_google_tag" value="<?php echo esc_attr($options['alfresco_google_tag']); ?>" class="regular-text">
-                        <p class="description"><?php _e('Paste the measurement ID (for example, G-XXXXXXXXXX) to enable Google Analytics tracking.', 'alfresco-search'); ?></p>
-                    </td>
-                </tr>
+		<tr>
+			<th scope="row"><?php _e('Google Analytics Tag', 'alfresco-search'); ?></th>
+			<td>
+				<input type="text" name="alfresco_google_tag" value="<?php echo esc_attr($options['alfresco_google_tag']); ?>" class="regular-text">
+				<p class="description"><?php _e('Paste the measurement ID (for example, G-XXXXXXXXXX) to enable Google Analytics tracking.', 'alfresco-search'); ?></p>
+			</td>
+		</tr>
                 <tr>
                     <th scope="row"><?php _e('Download Link Text', 'alfresco-search'); ?></th>
                     <td><input type="text" name="alfresco_download_text" value="<?php echo esc_attr($options['alfresco_download_text']); ?>" class="regular-text"></td>
@@ -570,8 +524,8 @@ function alfresco_search_options_page(){
                             $auth_header = 'Basic ' . base64_encode($options['alfresco_username'] . ':' . $options['alfresco_password']);
                             $sites_url = $alfresco_url_trimmed . "/api/-default-/public/alfresco/versions/1/sites";
                             $response = wp_remote_get($sites_url, array(
-                                'timeout' => 300,
-                                'sslverify' => !empty($options['alfresco_sslverify']),
+                                'timeout'   => 20,
+                                'sslverify' => false,
                                 'headers'   => array('Authorization' => $auth_header)
                             ));
                             $site_options = array();
@@ -612,6 +566,18 @@ function alfresco_search_options_page(){
 /* ---------------------------------------------------------------------------
    Helper Functions for Pagination & AJAX URLs
 --------------------------------------------------------------------------- */
+function alfresco_search_page_url($new_page) {
+    $args = array();
+    foreach ($_GET as $key => $value) {
+        if (is_array($value)) {
+            continue;
+        }
+        $args[$key] = sanitize_text_field(wp_unslash($value));
+    }
+    $args['page'] = $new_page;
+    $args['submitted'] = 1;
+    return add_query_arg($args, get_permalink());
+}
 function alfresco_search_ajax_url($new_page) {
     $args = array();
     foreach ($_GET as $key => $value) {
@@ -647,8 +613,8 @@ function alfresco_search_get_folders($site) {
 
     $url_dl = $alfresco_url . "/api/-default-/public/alfresco/versions/1/sites/{$site}/containers/documentLibrary";
     $response = wp_remote_get($url_dl, array(
-        'timeout' => 300,
-        'sslverify' => !empty($options['alfresco_sslverify']),
+        'timeout'   => 20,
+        'sslverify' => false,
         'headers'   => array('Authorization' => $auth_header)
     ));
     if (is_wp_error($response)) {
@@ -678,8 +644,8 @@ function alfresco_search_get_folders($site) {
             'Content-Type'  => 'application/json',
             'Authorization' => $auth_header
         ),
-        'timeout' => 300,
-        'sslverify' => !empty($options['alfresco_sslverify'])
+        'timeout'   => 20,
+        'sslverify' => false
     ));
     if (is_wp_error($response)) {
         return array();
@@ -725,32 +691,14 @@ function alfresco_search_get_folders($site) {
         );
     }
 
-    // Pass 1: record parent→child relationships by ID (avoids copying stale snapshots).
-    $children_map = array();
-    $root_ids = array();
-    foreach ($folders as $fid => $folder) {
+    $tree = array();
+    foreach ($folders as $folder) {
         $pid = $folder['parentId'];
         if ($pid === $dl_id || !isset($folders[$pid])) {
-            $root_ids[] = $fid;
+            $tree[] = $folder;
         } else {
-            $children_map[$pid][] = $fid;
+            $folders[$pid]['children'][] = $folder;
         }
-    }
-
-    // Pass 2: recursively build tree nodes from the final $folders state.
-    $build_node = function ($fid) use (&$build_node, &$folders, $children_map) {
-        $node = $folders[$fid];
-        if (!empty($children_map[$fid])) {
-            foreach ($children_map[$fid] as $child_id) {
-                $node['children'][] = $build_node($child_id);
-            }
-        }
-        return $node;
-    };
-
-    $tree = array();
-    foreach ($root_ids as $fid) {
-        $tree[] = $build_node($fid);
     }
 
     $flatten = function ($folder_list, $parent_relative = '', $depth = 0) use (&$flatten) {
@@ -815,26 +763,21 @@ function alfresco_search_handle_download(){
             wp_die(__('Invalid download request. Please refresh the page and try again.', 'alfresco-search'), 403);
         }
 
-        $node_id = alfresco_search_validate_node_id(sanitize_text_field(wp_unslash($_GET['alfresco_download'])));
-        if (!$node_id) {
-            wp_die(__('Invalid file identifier.', 'alfresco-search'), 400);
-        }
+        $node_id = sanitize_text_field(wp_unslash($_GET['alfresco_download']));
         $options = alfresco_search_get_options();
         $alfresco_url = rtrim($options['alfresco_url'], '/');
         $auth_header = 'Basic ' . base64_encode($options['alfresco_username'] . ':' . $options['alfresco_password']);
         $download_url = $alfresco_url . "/api/-default-/public/alfresco/versions/1/nodes/{$node_id}/content?attachment=true";
         $response = wp_remote_get($download_url, array(
-            'timeout' => 300,
-            'sslverify' => !empty($options['alfresco_sslverify']),
+            'timeout'   => 20,
+            'sslverify' => false,
             'headers'   => array('Authorization' => $auth_header)
         ));
         if(is_wp_error($response)){
-            wp_die(esc_html(alfresco_search_friendly_http_error($response)));
+            wp_die($response->get_error_message());
         } else {
-            $content_disposition = str_replace(array("\r", "\n"), '', wp_remote_retrieve_header($response, 'Content-Disposition'));
-            $content_type        = str_replace(array("\r", "\n"), '', wp_remote_retrieve_header($response, 'Content-Type'));
-            header("Content-Disposition: " . $content_disposition);
-            header("Content-Type: " . $content_type);
+            header("Content-Disposition: " . wp_remote_retrieve_header($response, 'Content-Disposition'));
+            header("Content-Type: " . wp_remote_retrieve_header($response, 'Content-Type'));
             echo wp_remote_retrieve_body($response);
             exit;
         }
@@ -855,25 +798,21 @@ function alfresco_search_handle_view() {
             wp_die(__('Invalid view request. Please refresh the page and try again.', 'alfresco-search'), 403);
         }
 
-        $node_id = alfresco_search_validate_node_id(sanitize_text_field(wp_unslash($_GET['alfresco_view'])));
-        if (!$node_id) {
-            wp_die(__('Invalid file identifier.', 'alfresco-search'), 400);
-        }
+        $node_id = sanitize_text_field(wp_unslash($_GET['alfresco_view']));
         $options = alfresco_search_get_options();
         $alfresco_url = rtrim($options['alfresco_url'], '/');
         $auth_header = 'Basic ' . base64_encode($options['alfresco_username'] . ':' . $options['alfresco_password']);
         $view_url = $alfresco_url . "/api/-default-/public/alfresco/versions/1/nodes/{$node_id}/content";
         $response = wp_remote_get($view_url, array(
-            'timeout' => 300,
-            'sslverify' => !empty($options['alfresco_sslverify']),
+            'timeout'   => 20,
+            'sslverify' => false,
             'headers'   => array('Authorization' => $auth_header)
         ));
         if(is_wp_error($response)){
-            wp_die(esc_html(alfresco_search_friendly_http_error($response)));
+            wp_die($response->get_error_message());
         } else {
-            $content_type = str_replace(array("\r", "\n"), '', wp_remote_retrieve_header($response, 'Content-Type'));
             header("Content-Disposition: inline");
-            header("Content-Type: " . $content_type);
+            header("Content-Type: " . wp_remote_retrieve_header($response, 'Content-Type'));
             echo wp_remote_retrieve_body($response);
             exit;
         }
@@ -920,21 +859,18 @@ function alfresco_search_node_details() {
     if ( empty($_GET['node_id']) ) {
         wp_send_json_error(__('No node_id provided', 'alfresco-search'));
     }
-    $node_id = alfresco_search_validate_node_id(sanitize_text_field(wp_unslash($_GET['node_id'])));
-    if (!$node_id) {
-        wp_send_json_error(__('Invalid node identifier.', 'alfresco-search'), 400);
-    }
+    $node_id = sanitize_text_field(wp_unslash($_GET['node_id']));
     $options = alfresco_search_get_options();
     $alfresco_url = rtrim($options['alfresco_url'], '/');
     $auth_header = 'Basic ' . base64_encode($options['alfresco_username'] . ':' . $options['alfresco_password']);
     $node_url = $alfresco_url . "/api/-default-/public/alfresco/versions/1/nodes/" . $node_id;
     $response = wp_remote_get($node_url, array(
-        'timeout' => 300,
-        'sslverify' => !empty($options['alfresco_sslverify']),
+        'timeout' => 20,
+        'sslverify' => false,
         'headers' => array('Authorization' => $auth_header)
     ));
     if(is_wp_error($response)){
-        wp_send_json_error(alfresco_search_friendly_http_error($response));
+        wp_send_json_error($response->get_error_message());
     } else {
         $node_data = json_decode(wp_remote_retrieve_body($response), true);
         wp_send_json_success($node_data['entry']);
@@ -942,78 +878,6 @@ function alfresco_search_node_details() {
 }
 add_action('wp_ajax_alfresco_node_details', 'alfresco_search_node_details');
 add_action('wp_ajax_nopriv_alfresco_node_details', 'alfresco_search_node_details');
-
-/* ---------------------------------------------------------------------------
-   Shared Search Execution
---------------------------------------------------------------------------- */
-function alfresco_search_execute_query($payload, $options, $max_results) {
-    $alfresco_url_trimmed = rtrim($options['alfresco_url'], '/');
-    $auth_header = 'Basic ' . base64_encode($options['alfresco_username'] . ':' . $options['alfresco_password']);
-    $search_url = $alfresco_url_trimmed . "/api/-default-/public/search/versions/1/search";
-
-    $response = wp_remote_post($search_url, array(
-        'body'    => wp_json_encode($payload),
-        'headers' => array(
-            'Content-Type'  => 'application/json',
-            'Authorization' => $auth_header
-        ),
-        'timeout'   => 300,
-        'sslverify' => !empty($options['alfresco_sslverify'])
-    ));
-
-    $results       = array();
-    $total_items   = 0;
-    $limit_reached = false;
-    $error_message = '';
-    $query_preview_url = alfresco_search_build_query_preview_url($search_url, $payload['query']['query']);
-
-    if (is_wp_error($response)) {
-        $error_message = alfresco_search_friendly_http_error($response);
-    } else {
-        $status_code = wp_remote_retrieve_response_code($response);
-        if ($status_code < 200 || $status_code >= 300) {
-            $error_message = sprintf(
-                __('Alfresco search request failed (%1$s %2$s).', 'alfresco-search'),
-                $status_code,
-                wp_remote_retrieve_response_message($response)
-            );
-        } else {
-            $data = json_decode(wp_remote_retrieve_body($response), true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $error_message = __('Invalid response from Alfresco', 'alfresco-search');
-            } elseif (isset($data['list'])) {
-                foreach ($data['list']['entries'] as $entry) {
-                    if (!isset($entry['entry'])) {
-                        continue;
-                    }
-                    $node = $entry['entry'];
-                    if (isset($node['nodeType']) && $node['nodeType'] === 'cm:folder') {
-                        continue;
-                    }
-                    if (alfresco_search_path_has_hidden_folder($node)) {
-                        continue;
-                    }
-                    $results[] = $entry;
-                }
-                $raw_total = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
-                $limit_reached = ($raw_total > $max_results);
-                $total_items   = $limit_reached ? $max_results : $raw_total;
-            } elseif (isset($data['error']['errorKey'])) {
-                $error_message = sprintf(__('Alfresco error: %s', 'alfresco-search'), $data['error']['errorKey']);
-            } else {
-                $error_message = __('Invalid response from Alfresco', 'alfresco-search');
-            }
-        }
-    }
-
-    return array(
-        'results'           => $results,
-        'total_items'       => $total_items,
-        'limit_reached'     => $limit_reached,
-        'error_message'     => $error_message,
-        'query_preview_url' => $query_preview_url,
-    );
-}
 
 /* ---------------------------------------------------------------------------
    AJAX Handler for Search Results
@@ -1084,12 +948,65 @@ function alfresco_search_ajax_handler() {
         )
     );
 
-    $search_result = alfresco_search_execute_query($payload, $options, $max_results);
-    $results           = $search_result['results'];
-    $total_items       = $search_result['total_items'];
-    $limit_reached     = $search_result['limit_reached'];
-    $error_message     = $search_result['error_message'];
-    $query_preview_url = $search_result['query_preview_url'];
+    $results = array();
+    $total_items = 0;
+    $limit_reached = false;
+    $error_message = '';
+    $alfresco_url_trimmed = rtrim($options['alfresco_url'], '/');
+    $auth_header = 'Basic ' . base64_encode($options['alfresco_username'] . ':' . $options['alfresco_password']);
+    $search_url = $alfresco_url_trimmed . "/api/-default-/public/search/versions/1/search";
+    $query_preview_url = alfresco_search_build_query_preview_url($search_url, $query_string);
+
+    $response = wp_remote_post($search_url, array(
+        'body'      => wp_json_encode($payload),
+        'headers'   => array(
+            'Content-Type'  => 'application/json',
+            'Authorization' => $auth_header
+        ),
+        'timeout'   => 20,
+        'sslverify' => false
+    ));
+
+    if (is_wp_error($response)) {
+        $error_message = $response->get_error_message();
+    } else {
+        $status_code = wp_remote_retrieve_response_code($response);
+        if ($status_code < 200 || $status_code >= 300) {
+            $status_message = wp_remote_retrieve_response_message($response);
+            $error_message = sprintf(
+                __('Alfresco search request failed (%1$s %2$s).', 'alfresco-search'),
+                $status_code,
+                $status_message
+            );
+        } else {
+            $body = wp_remote_retrieve_body($response);
+            $data = json_decode($body, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $error_message = __('Invalid response from Alfresco', 'alfresco-search');
+            } elseif (isset($data['list'])) {
+                foreach ($data['list']['entries'] as $entry) {
+                    if (!isset($entry['entry'])) {
+                        continue;
+                    }
+                    $node = $entry['entry'];
+                    if (isset($node['nodeType']) && $node['nodeType'] === 'cm:folder') {
+                        continue;
+                    }
+                    if (alfresco_search_path_has_hidden_folder($node)) {
+                        continue;
+                    }
+                    $results[] = $entry;
+                }
+                $raw_total_items = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
+                $limit_reached = ($raw_total_items > $max_results);
+                $total_items = $limit_reached ? $max_results : $raw_total_items;
+            } elseif (isset($data['error']['errorKey'])) {
+                $error_message = sprintf(__('Alfresco error: %s', 'alfresco-search'), $data['error']['errorKey']);
+            } else {
+                $error_message = __('Invalid response from Alfresco', 'alfresco-search');
+            }
+        }
+    }
 
     alfresco_search_sort_entries_by_filename($results);
 
@@ -1105,8 +1022,7 @@ function alfresco_search_ajax_handler() {
             'query_string'  => $query_string,
             'limit_reached' => $limit_reached,
             'max_results'   => $max_results,
-            'show_total'    => true,
-            'page_size'     => $page_size
+            'show_total'    => true
         )
     );
     wp_die();
@@ -1117,20 +1033,12 @@ add_action('wp_ajax_nopriv_alfresco_search_results', 'alfresco_search_ajax_handl
 /* ---------------------------------------------------------------------------
    Helper: Output Results Markup
 --------------------------------------------------------------------------- */
-function alfresco_search_allowed_svg_kses() {
-    return array(
-        'svg'  => array('xmlns' => true, 'width' => true, 'height' => true, 'fill' => true, 'class' => true, 'viewbox' => true, 'viewBox' => true, 'aria-hidden' => true, 'focusable' => true),
-        'path' => array('d' => true, 'fill-rule' => true, 'fill' => true, 'clip-rule' => true),
-    );
-}
-
 function alfresco_search_get_results_markup($results, $total_items, $total_pages, $page, $error_message = '', $error_details = array()) {
     ob_start();
     $options = alfresco_search_get_options();
     $debug_enabled = alfresco_search_is_debug_enabled($options);
     $limit_reached = !empty($error_details['limit_reached']);
     $max_results = isset($error_details['max_results']) ? intval($error_details['max_results']) : intval($options['alfresco_max_results']);
-    $page_size = isset($error_details['page_size']) ? intval($error_details['page_size']) : 50;
     $show_total = !empty($error_details['show_total']);
     ?>
     <?php if(!empty($error_message)): ?>
@@ -1189,24 +1097,16 @@ function alfresco_search_get_results_markup($results, $total_items, $total_pages
                 </thead>
                 <tbody>
                     <?php
-                    $download_text = $options['alfresco_download_text'];
-                    $view_text = $options['alfresco_view_text'];
-                    $icons_only = $options['alfresco_icons_only'];
-                    $download_icon = $options['alfresco_download_icon'];
-                    $view_icon = $options['alfresco_view_icon'];
+                    $download_text = get_option('alfresco_download_text', __('Download', 'alfresco-search'));
+                    $view_text = get_option('alfresco_view_text', __('View', 'alfresco-search'));
+                    $icons_only = get_option('alfresco_icons_only', 0);
+                    $download_icon = get_option('alfresco_download_icon', '');
+                    $view_icon = get_option('alfresco_view_icon', '');
                     ?>
-                    <?php foreach($results as $index => $entry): ?>
-                        <?php 
-                        $node = $entry['entry']; 
-                        $counter = ($page - 1) * $page_size + $index + 1;
-                        ?>
+                    <?php foreach($results as $entry): ?>
+                        <?php $node = $entry['entry']; ?>
                         <tr>
-                            <td class="border p-2 text-[11px]">
-                                <?php if($debug_enabled): ?>
-                                    <span class="font-bold mr-1"><?php echo intval($counter); ?> -</span>
-                                <?php endif; ?>
-                                <?php echo esc_html($node['name']); ?>
-                            </td>
+                            <td class="border p-2 text-[11px]"><?php echo esc_html($node['name']); ?></td>
                             <td class="border p-2">
                                 <div class="node-details" data-node-id="<?php echo esc_attr($node['id']); ?>">
                                     <div class="node-title text-[13px] uppercase"><?php _e('Loading title...', 'alfresco-search'); ?></div>
@@ -1216,10 +1116,10 @@ function alfresco_search_get_results_markup($results, $total_items, $total_pages
                             <td class="border p-2">
                                 <?php if($icons_only): ?>
                                     <a href="<?php echo esc_url(alfresco_search_url_for('download_file', array('node_id' => $node['id']))); ?>" class="block text-blue-500" title="<?php _e('Download', 'alfresco-search'); ?>">
-                                        <?php echo $download_icon ? wp_kses($download_icon, alfresco_search_allowed_svg_kses()) : esc_html($download_text); ?>
-                                    </a>
+                                        <?php echo $download_icon ? $download_icon : esc_html($download_text); ?>
+                                    </a>	
                                     <a href="<?php echo esc_url(alfresco_search_url_for('view_file', array('node_id' => $node['id']))); ?>" class="block text-blue-500 mt-1" title="<?php _e('View', 'alfresco-search'); ?>" target="_blank">
-                                        <?php echo $view_icon ? wp_kses($view_icon, alfresco_search_allowed_svg_kses()) : esc_html($view_text); ?>
+                                        <?php echo $view_icon ? $view_icon : esc_html($view_text); ?>
                                     </a>
                                 <?php else: ?>
                                     <a href="<?php echo esc_url(alfresco_search_url_for('download_file', array('node_id' => $node['id']))); ?>" class="block text-blue-500">
@@ -1341,12 +1241,58 @@ function alfresco_search_shortcode($atts){
         } elseif (!alfresco_search_current_user_can_access()) {
             $error_message = __('You do not have permission to perform searches.', 'alfresco-search');
         } else {
-            $search_result     = alfresco_search_execute_query($payload, $options, $max_results);
-            $results           = $search_result['results'];
-            $total_items       = $search_result['total_items'];
-            $limit_reached     = $search_result['limit_reached'];
-            $error_message     = $search_result['error_message'];
-            $query_preview_url = $search_result['query_preview_url'];
+            $alfresco_url_trimmed = rtrim($options['alfresco_url'], '/');
+            $auth_header = 'Basic ' . base64_encode($options['alfresco_username'] . ':' . $options['alfresco_password']);
+            $search_url = $alfresco_url_trimmed . "/api/-default-/public/search/versions/1/search";
+            $query_preview_url = alfresco_search_build_query_preview_url($search_url, $query_string);
+            $response = wp_remote_post($search_url, array(
+                'body'      => wp_json_encode($payload),
+                'headers'   => array(
+                    'Content-Type'  => 'application/json',
+                    'Authorization' => $auth_header
+                ),
+                'timeout'   => 20,
+                'sslverify' => false
+            ));
+            if(is_wp_error($response)){
+                $error_message = $response->get_error_message();
+            } else {
+                $status_code = wp_remote_retrieve_response_code($response);
+                if ($status_code < 200 || $status_code >= 300) {
+                    $status_message = wp_remote_retrieve_response_message($response);
+                    $error_message = sprintf(
+                        __('Alfresco search request failed (%1$s %2$s).', 'alfresco-search'),
+                        $status_code,
+                        $status_message
+                    );
+                } else {
+                    $data = json_decode(wp_remote_retrieve_body($response), true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        $error_message = __('Invalid response from Alfresco', 'alfresco-search');
+                    } elseif(isset($data['list'])){
+                        foreach ($data['list']['entries'] as $entry) {
+                            if (!isset($entry['entry'])) {
+                                continue;
+                            }
+                            $node = $entry['entry'];
+                            if ( isset($node['nodeType']) && $node['nodeType'] === 'cm:folder' ) {
+                                continue;
+                            }
+                            if (alfresco_search_path_has_hidden_folder($node)) {
+                                continue;
+                            }
+                            $results[] = $entry;
+                        }
+                        $raw_total_items = isset($data['list']['pagination']['totalItems']) ? intval($data['list']['pagination']['totalItems']) : 0;
+                        $limit_reached = ($raw_total_items > $max_results);
+                        $total_items = $limit_reached ? $max_results : $raw_total_items;
+                    } elseif (isset($data['error']['errorKey'])) {
+                        $error_message = sprintf(__('Alfresco error: %s', 'alfresco-search'), $data['error']['errorKey']);
+                    } else {
+                        $error_message = __("Invalid response from Alfresco", "alfresco-search");
+                    }
+                }
+            }
         }
     }
 
@@ -1419,8 +1365,7 @@ function alfresco_search_shortcode($atts){
             'query_string'  => $query_string,
             'limit_reached' => $limit_reached,
             'max_results'   => $max_results,
-            'show_total'    => $submitted,
-            'page_size'     => $page_size
+            'show_total'    => $submitted
         )
     );
     $output .= '</div></div>';
@@ -1431,7 +1376,7 @@ function alfresco_search_shortcode($atts){
             'payload' => $payload,
             'first_3_results' => array_slice($results, 0, 3)
         );
-        $output .= '<script>console.log("ALFRESCO DEBUG:", ' . wp_json_encode($debug_data) . ');</script>';
+        $output .= '<script>console.log("ALFRESCO DEBUG:", ' . json_encode($debug_data) . ');</script>';
     }
     
     return $output;
